@@ -1,6 +1,6 @@
 import os
 from ollama import Client, Options, Message, ResponseError
-from typing import Dict
+from typing import Dict, List
 from domain.prompts import SYSTEM_PROMPT
 
 
@@ -37,3 +37,16 @@ def model_inference(
         return {"message": f"Error performing inference: {e.error}"}
     except Exception as e:
         return {"message": f"Error performing inference: {e}"}
+
+
+def list_installed_llms() -> List[str]:
+    models = client.list()
+
+    return [
+        {
+            "model_name": model.get("model"),
+            "family": model.get("details", {}).get("family"),
+            "param_size": model.get("details", {}).get("parameter_size"),
+        }
+        for model in models.get("models")
+    ]

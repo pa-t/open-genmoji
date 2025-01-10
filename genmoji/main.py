@@ -7,7 +7,7 @@ from huggingface_hub import hf_hub_download, login
 from PIL import Image
 from domain.schemas import DownloadModelRequest, GenerationRequest
 from utils.generate_image import generate_image
-from utils.llm_utils import model_inference
+from utils.llm_utils import list_installed_llms, model_inference
 from utils.logger import logger
 
 load_dotenv()
@@ -33,19 +33,32 @@ async def download_model(input_data: DownloadModelRequest) -> JSONResponse:
         return JSONResponse(content={"response": f"Error downloading model: {e}"}, status_code=500)
 
 
-@app.get("/installed_models")
-async def get_installed_models() -> JSONResponse:
+@app.get("/installed_img_genmodels")
+async def get_installed_img_gen_models() -> JSONResponse:
     """
-    Get the list of installed models
+    Get the list of installed image gen models
     """
     try:
         models = os.listdir("lora/")
         models = [model.replace(".safetensors", "") for model in models if not model.startswith(".") and "safetensors" in model]
         return JSONResponse(content={"models": models})
     except Exception as e:
-        logger.error(f"Error downloading model: {e}")
+        logger.error(f"Error listing models: {e}")
         logger.exception(e)
-        return JSONResponse(content=f"Error downloading model: {e}", status_code=500)
+        return JSONResponse(content=f"Error listing models: {e}", status_code=500)
+
+
+@app.get("/installed_llms")
+async def get_installed_llms() -> JSONResponse:
+    """
+    Get the list of installed llms from ollama
+    """
+    try:
+        return JSONResponse(content={"models": list_installed_llms()})
+    except Exception as e:
+        logger.error(f"Error listing models: {e}")
+        logger.exception(e)
+        return JSONResponse(content=f"Error listing models: {e}", status_code=500)
 
 
 @app.post("/inference")
