@@ -68,7 +68,11 @@ async def inference(input_data: GenerationRequest) -> StreamingResponse:
             user_prompt=input_data.prompt,
             model_name=input_data.llm_model
         ).get("message")
-        logger.info("Prompt Created: " + user_prompt)
+        if "i cannot" in user_prompt.lower() or "i can't" in user_prompt.lower():
+            logger.warning("Refusal detected from LLM prompt enhancement. Using raw prompt input, generation may be lacking.")
+            user_prompt = input_data.prompt
+        else:
+            logger.info("Prompt Created: " + user_prompt)
 
     # Generate the image using the response from the prompt assistant
     image = generate_image(user_prompt, input_data.lora, input_data.width, input_data.height)
